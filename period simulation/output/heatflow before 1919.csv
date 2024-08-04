@@ -1,0 +1,5 @@
+Heat transmission,SFH[KWh/a],TH[KWh/a],MFH[KWh/a],AB[KWh/a]
+Heat loss,45138,23390,65317,137608
+Heat gain,3783,2796,12135,29316
+Heat demand,38486,19223,50110,102353
+flow per sqm,271,200,160,123
