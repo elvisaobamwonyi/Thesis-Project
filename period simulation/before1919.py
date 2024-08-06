@@ -1,4 +1,4 @@
-# TODO-1 Importing Tabula Parameter
+ # TODO-1 Importing Tabula Parameter
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
@@ -21,7 +21,7 @@ weather = pd.read_csv(simulation_data, skiprows=8, nrows=8760, index_col=0)
 weather.index = pd.to_datetime(weather.index, format="%Y%m%d:%H%M")
 weather.index = pd.date_range(start="2009-01-01 00:00", end="2009-12-31 23:00", freq="h")
 """
-temp= weather["T2m"]
+temp= weather["T2m"]                # hourly external temperature data
 a = temp #.resample("h").mean()
 plt.plot(a)
 plt.title(f"External temperature profile", fontsize =14)
@@ -33,79 +33,81 @@ plt.xticks(["2009-01", "2009-03" , "2009-05", "2009-07", "2009-09", "2009-11", "
 plt.ticklabel_format()
 plt.tight_layout()
 plt.savefig(f'output/before 1919_temp')
-plt.show()"""
+plt.show()
+"""
 # TODO - 2.1 Hourly Calaculation
 
-# Tabula Data
-teta = 20.0           # indoor temp heating season
+# Defined Data
+teta = 20.0                         # indoor temperature during heating season
 A_ref = [141.8, 96, 312.4, 829.4]   # reference area for sfh, th, mfh and ab in [m2]
-btr_ex = 1.0          # adjustment soil factor for construction bordering on external air
-btr_floor = 0.5       # adjustment soil factor of unheated cellar/construction bordering on soil
-Fnu = [0.80, 0.84, 0.90, 0.93]    # temp reduction sfh, th, mfh and ab (high thermal conductivity
-base_temp = 12.0      # Base temp [°C]
-DU_tbr = 0.10         # U value for thermal bridge
+btr_ex = 1.0                        # adjustment soil factor for construction bordering on external air
+btr_floor = 0.5                     # adjustment soil factor of unheated cellar/construction bordering on soil
+Fnu = [0.80, 0.84, 0.90, 0.93]      # temp reduction factor for sfh, th, mfh and ab
+base_temp = 12.0                    # Base temp [°C]
+DU_tbr = 0.10                       # U value use for thermal bridge calculation
 
-cp_air = 0.34              # Volume specific heat capacity of air            [Wh/(m^3.K)]
-n_air_use = 0.40           # Air change rate by use                          [1/h]
-n_air_inf = 0.20           # Air change rate by infiltration                 [1/h]
-h_room = 2.5               # standard value of room height                   [m]
+cp_air = 0.34              # Volumetric specific heat capacity of air            [Wh/(m^3.K)]
+n_air_use = 0.40           # Air change rate by use (ventilation)                [1/h]
+n_air_inf = 0.20           # Air change rate by infiltration                     [1/h]
+h_room = 2.5               # room height                                         [m]
 
-A_wall1 = [sfh1.iloc[2][0], th1.iloc[2][0], mfh1.iloc[2][0], ab1.iloc[2][0]]     # Wall envelope area [m2]
-U_wall1 = [sfh1.iloc[2][1], th1.loc["wall_1", "Uactual,iW/(m2K)"],
-          mfh1.loc["wall_1", "Uactual,iW/(m2K)"], ab1.iloc[2][15]]     # Heat transfer coeff - actual u value [W/(m2K)]
-A_wall2 = [sfh1.iloc[3][0], th1.iloc[3][0], mfh1.iloc[3][0], ab1.iloc[3][0]]     # Wall envelope area [m2]
-U_wall2 = [sfh1.iloc[3][1], th1.loc["wall_2", "Uactual,iW/(m2K)"],
-           mfh1.loc["wall_2", "Uactual,iW/(m2K)"], ab1.iloc[3][15]]    # Heat transfer coeff - actual u value [W/(m2K)]
-U_roof = [sfh1.loc["roof_1", "Uactual,iW/(m2K)"],
+A_wall1 = [sfh1.iloc[2][0], th1.iloc[2][0], mfh1.iloc[2][0], ab1.iloc[2][0]]  # Wall1 area [m2]
+U_wall1 = [sfh1.iloc[2][1], th1.loc["wall_1", "Uactual,iW/(m2K)"],            # U_value for wall1 [W/(m2K)]
+          mfh1.loc["wall_1", "Uactual,iW/(m2K)"], ab1.iloc[2][15]]     
+A_wall2 = [sfh1.iloc[3][0], th1.iloc[3][0], mfh1.iloc[3][0], ab1.iloc[3][0]]  # Wall2 area [m2]
+U_wall2 = [sfh1.iloc[3][1], th1.loc["wall_2", "Uactual,iW/(m2K)"],            # U_value for wall2 [W/(m2K)]
+           mfh1.loc["wall_2", "Uactual,iW/(m2K)"], ab1.iloc[3][15]]           
+U_roof = [sfh1.loc["roof_1", "Uactual,iW/(m2K)"],                                        # U_value for roof1 [W/(m2K)]
           th1.loc["roof_1", "Uactual,iW/(m2K)"],
           mfh1.loc["roof_1", "Uactual,iW/(m2K)"],
           ab1.loc["roof_1", "Uactual,iW/(m2K)"]]     # actual u value [W/(m2K)]
-A_roof = [sfh1.iloc[0][0], th1.iloc[0][0], mfh1.iloc[0][0], ab1.iloc[0][0]]                       # roof envelope area [m2]
-U_roof1 = [sfh1.loc["roof_2", "Uactual,iW/(m2K)"], th1.loc["roof_2", "Uactual,iW/(m2K)"],
-           mfh1.loc["roof_2", "Uactual,iW/(m2K)"], ab1.iloc[1][15]]   # actual u value [W/(m2K)]
-A_roof1 = [sfh1.iloc[1][0], th1.iloc[1][0], mfh1.iloc[1][0], ab1.iloc[1][0]]                         # roof envelope area [m2]
+A_roof = [sfh1.iloc[0][0], th1.iloc[0][0], mfh1.iloc[0][0], ab1.iloc[0][0]]                # roof1 area [m2]
+
+U_roof1 = [sfh1.loc["roof_2", "Uactual,iW/(m2K)"], th1.loc["roof_2", "Uactual,iW/(m2K)"],  
+           mfh1.loc["roof_2", "Uactual,iW/(m2K)"], ab1.iloc[1][15]]                        # U_value for roof2 [W/(m2K)]
+A_roof1 = [sfh1.iloc[1][0], th1.iloc[1][0], mfh1.iloc[1][0], ab1.iloc[1][0]]               # roof area2 [m2] 
 U_floor = [sfh1.loc["floor_2", "Uactual,iW/(m2K)"], th1.loc["floor_1", "Uactual,iW/(m2K)"],
-           mfh1.loc["floor_1", "Uactual,iW/(m2K)"], ab1.iloc[5][15]] # actual u value [W/(m2K)]
-A_floor = [sfh1.iloc[5][0], th1.iloc[5][0], mfh1.iloc[5][0], ab1.iloc[5][0]]                        # floor envelope area [m2]
-U_floor1 = [sfh1.iloc[5][1], th1.loc["floor_2", "Uactual,iW/(m2K)"],
-            mfh1.loc["floor_2", "Uactual,iW/(m2K)"], ab1.iloc[6][15]]                         # actual u value [W/(m2K)]
-A_floor1 = [sfh1.iloc[-4][0], th1.iloc[-4][0], mfh1.iloc[-4][0], ab1.iloc[-4][0]]                       # floor envelope area [m2]
+           mfh1.loc["floor_1", "Uactual,iW/(m2K)"], ab1.iloc[5][15]]                       # U_value for floor1 [W/(m2K)]  
+A_floor = [sfh1.iloc[5][0], th1.iloc[5][0], mfh1.iloc[5][0], ab1.iloc[5][0]]               # floor1 area [m2]
+U_floor1 = [sfh1.iloc[5][1], th1.loc["floor_2", "Uactual,iW/(m2K)"],                       # U_Value for floor2 [W/(m2K)]
+            mfh1.loc["floor_2", "Uactual,iW/(m2K)"], ab1.iloc[6][15]]                      # floor2 area [m2]   
+A_floor1 = [sfh1.iloc[-4][0], th1.iloc[-4][0], mfh1.iloc[-4][0], ab1.iloc[-4][0]]                       
 U_win = [sfh1.loc["window_1", "Uactual,iW/(m2K)"], th1.loc["window_1", "Uactual,iW/(m2K)"],
-         mfh1.loc["window_1", "Uactual,iW/(m2K)"], ab1.iloc[-3][15]]  # actual u value [W/(m2K)]
-A_win = [sfh1.iloc[-3][0], th1.iloc[-3][0], mfh1.iloc[-3][0], ab1.iloc[-3][0]]                          # window envelope area [m2]
-U_win1 = [sfh1.loc["window_2", "Uactual,iW/(m2K)"], th1.loc["window_2", "Uactual,iW/(m2K)"],
-          mfh1.loc["window_2", "Uactual,iW/(m2K)"], ab1.iloc[-2][15]]  # actual u value [W/(m2K)]
-A_win1 = [sfh1.iloc[-2][0], th1.iloc[-2][0], mfh1.iloc[-2][0], ab1.iloc[-2][0]]                         # window envelope area [m2]
+         mfh1.loc["window_1", "Uactual,iW/(m2K)"], ab1.iloc[-3][15]]                        # U_value for window1 [W/(m2K)]
+A_win = [sfh1.iloc[-3][0], th1.iloc[-3][0], mfh1.iloc[-3][0], ab1.iloc[-3][0]]              # window1 area [m2]
+U_win1 = [sfh1.loc["window_2", "Uactual,iW/(m2K)"], th1.loc["window_2", "Uactual,iW/(m2K)"], # U_value for window2 [W/(m2K)]
+          mfh1.loc["window_2", "Uactual,iW/(m2K)"], ab1.iloc[-2][15]]  
+A_win1 = [sfh1.iloc[-2][0], th1.iloc[-2][0], mfh1.iloc[-2][0], ab1.iloc[-2][0]]             # window2 area [m2]
 U_door = [sfh1.loc["door_1", "Uactual,iW/(m2K)"], th1.loc["door_1", "Uactual,iW/(m2K)"],
-          mfh1.loc["door_1", "Uactual,iW/(m2K)"], ab1.loc["door_1", "Uactual,iW/(m2K)"]]  # actual u value [W/(m2K)]
+          mfh1.loc["door_1", "Uactual,iW/(m2K)"], ab1.loc["door_1", "Uactual,iW/(m2K)"]]    # U_Value for door [W/(m2K)]
 A_door = [sfh1.iloc[-1][0], th1.iloc[-1][0], mfh1.iloc[-1][0], ab1.iloc[-1][0]]                        # door envelope area [m2]
 
 A_env_sfh = np.array([A_wall1[0], A_wall2[0], A_roof[0], A_roof1[0],
-                      A_floor[0], A_floor1[0], A_win[0], A_win1[0], A_door[0]]).sum()   # total envelope area [m2]
+                      A_floor[0], A_floor1[0], A_win[0], A_win1[0], A_door[0]]).sum()    # total envelope area  for sfh[m2]
 A_env_th = np.array([A_wall1[1], A_wall2[1], A_roof[1], A_roof1[1],
-                      A_floor[1], A_floor1[1], A_win[1], A_win1[1], A_door[1]]).sum()   # total envelope area [m2]
+                      A_floor[1], A_floor1[1], A_win[1], A_win1[1], A_door[1]]).sum()   # total envelope area  for th [m2]
 A_env_mfh = np.array([A_wall1[2], A_wall2[2], A_roof[2], A_roof1[2],
-                      A_floor[2], A_floor1[2], A_win[2], A_win1[2], A_door[2]]).sum()   # total envelope area [m2]
+                      A_floor[2], A_floor1[2], A_win[2], A_win1[2], A_door[2]]).sum()   # total envelope area for mfh [m2]
 A_env_ab = np.array([A_wall1[3], A_wall2[3], A_roof[3], A_roof1[3],
-                      A_floor[3], A_floor1[3], A_win[3], A_win1[3], A_door[3]]).sum()   # total envelope area [m2]
+                      A_floor[3], A_floor1[3], A_win[3], A_win1[3], A_door[3]]).sum()   # total envelope area for ab [m2]
 
 
 # TODO 2.11 Heat losses
 
-Q_hloss_sfh = []          # Total heat loss [KWh/m^2.a]
-Q_hloss_th = []          # Total heat loss [KWh/m^2.a]
-Q_hloss_mfh = []
-Q_hloss_ab = []
+Q_hloss_sfh = []          # Total heat loss for sfh  [KWh/m^2.a]
+Q_hloss_th = []           # Total heat loss for th  [KWh/m^2.a]
+Q_hloss_mfh = []          # Total heat loss for mfh  [KWh/m^2.a]
+Q_hloss_ab = []           # Total heat loss for ab  [KWh/m^2.a]
 
-q_tr_coeff_sfh = []   # Transmission loss coeff sfh
-q_tr_coeff_th = []   # Transmission loss coeff th
-q_tr_coeff_mfh = []
-q_tr_coeff_ab = []
-
-q_ve_coeff_sfh = []
-q_ve_coeff_th = []
-q_ve_coeff_mfh = []
-q_ve_coeff_ab = []
+q_tr_coeff_sfh = []       # Transmission heat loss coeff for sfh
+q_tr_coeff_th = []        # Transmission heat loss coeff for  th
+q_tr_coeff_mfh = []       # Transmission heat loss coeff for  mfh
+q_tr_coeff_ab = []        # Transmission heat loss coeff for  ab
+   
+q_ve_coeff_sfh = []       # ventilation heat loss coeff for sfh
+q_ve_coeff_th = []        # ventilation heat loss coeff for th
+q_ve_coeff_mfh = []       # ventilation heat loss coeff for mfh
+q_ve_coeff_ab = []        # ventilation heat loss coeff for ab
 for i in range(0, len(weather)):
     if weather["T2m"][i] <= base_temp:
         temp_diff_sfh = (weather["T2m"][i] - teta) * 0.001 * Fnu[0]
@@ -204,7 +206,8 @@ coeff_ve_res_mfh = sum(q_ve_coeff_mfh)/len(q_ve_coeff_mfh)
 coeff_ve_res_ab = sum(q_ve_coeff_ab)/len(q_ve_coeff_ab)
 
 #print(coeff_tr_res_sfh, coeff_tr_res_th, coeff_ve_res_sfh, coeff_ve_res_th)
-# TODO-6 Solar Heat Gains During Heating Season and Cooling season
+
+# TODO-6 Solar Heat Gains During Heating Season
 Ff = 0.3         # Frame area fraction
 Fw = 0.9         # non-perpendicular
 ggl = 0.75       # solar energy transmittance
@@ -213,17 +216,17 @@ Int_gain = 3.0   # internal heat gains [W/m^2]
 Fsh_hor = 0.8    # external shading in horizontal direction
 Fsh_j = 0.6      # external shading in other dirn
 
-Aw_hor = [0, 0, 0, 0]         # window area in east direction
+Aw_hor = [0, 0, 0, 0]               # window area in east direction
 Aw_est = [7.7, 0.0, 26.4, 65.8]     # window area in east direction
-Aw_st = [5.6, 8.0, 0.0, 2.3]      # window area in south direction
+Aw_st = [5.6, 8.0, 0.0, 2.3]        # window area in south direction
 Aw_wst = [7.7, 0.0, 26.4, 65.8]     # window area in east direction
-Aw_nrt = [1.4, 10.1, 1.3, 2.3]     # window area in east direction
+Aw_nrt = [1.4, 10.1, 1.3, 2.3]      # window area in east direction
 
 # TODO Heat Gain
-Q_hgain_sfh = []
-Q_hgain_th = []
-Q_hgain_mfh = []
-Q_hgain_ab = []
+Q_hgain_sfh = []      # Heat Gain in sfh
+Q_hgain_th = []       # Heat Gain in th
+Q_hgain_mfh = []      # Heat Gain in mfh
+Q_hgain_ab = []       # Heat Gain in ab
 for i in range(0, len(weather)):
     if weather["T2m"][i] <= base_temp:
         const = (1 - Ff) * Fw * ggl * 0.001
@@ -234,7 +237,7 @@ for i in range(0, len(weather)):
             + (Aw_wst[0] * weather["G(i)_wst"][i])    # gain in west direction
             + (Aw_nrt[0] * weather["G(i)_nth"][i]))   # gain in north direction
             * const1) + (Fsh_hor * Aw_hor[0] * weather["G(i)_hor"][i] * const) # gain in horigontal direction
-            + (Int_gain * A_ref[0] * 0.001 )  # Internal heat gain
+            + (Int_gain * A_ref[0] * 0.001 )          # Internal heat gain
                )
 
         q_gain_th = (
@@ -243,24 +246,24 @@ for i in range(0, len(weather)):
                   + (Aw_wst[1] * weather["G(i)_wst"][i])  # gain in west direction
                   + (Aw_nrt[1] * weather["G(i)_nth"][i]))  # gain in north direction
                  * const1) + (Fsh_hor * Aw_hor[1] * weather["G(i)_hor"][i] * const)  # gain in horigontal direction
-                + (Int_gain * A_ref[1] * 0.001)  # Internal heat gain
+                + (Int_gain * A_ref[1] * 0.001)                                      # Internal heat gain
         )
 
         q_gain_mfh = (
-                (((Aw_est[2] * weather["G(i)_est"][i])  # gain in east direction
-                  + (Aw_st[2] * weather["G(i)_sth"][i])  # gain in south direction
-                  + (Aw_wst[2] * weather["G(i)_wst"][i])  # gain in west direction
-                  + (Aw_nrt[2] * weather["G(i)_nth"][i]))  # gain in north direction
+                (((Aw_est[2] * weather["G(i)_est"][i])                           # gain in east direction
+                  + (Aw_st[2] * weather["G(i)_sth"][i])                          # gain in south direction
+                  + (Aw_wst[2] * weather["G(i)_wst"][i])                         # gain in west direction
+                  + (Aw_nrt[2] * weather["G(i)_nth"][i]))                        # gain in north direction
                  * const1) + (Fsh_hor * Aw_hor[2] * weather["G(i)_hor"][i] * const)  # gain in horigontal direction
-                + (Int_gain * A_ref[2] * 0.001)  # Internal heat gain
+                + (Int_gain * A_ref[2] * 0.001)                                      # Internal heat gain
         )
         q_gain_ab = (
                 (((Aw_est[3] * weather["G(i)_est"][i])  # gain in east direction
                   + (Aw_st[3] * weather["G(i)_sth"][i])  # gain in south direction
                   + (Aw_wst[3] * weather["G(i)_wst"][i])  # gain in west direction
                   + (Aw_nrt[3] * weather["G(i)_nth"][i]))  # gain in north direction
-                 * const1) + (Fsh_hor * Aw_hor[3] * weather["G(i)_hor"][i] * const)  # gain in horigontal direction
-                + (Int_gain * A_ref[3] * 0.001)  # Internal heat gain
+                 * const1) + (Fsh_hor * Aw_hor[3] * weather["G(i)_hor"][i] * const)   # gain in horigontal direction
+                + (Int_gain * A_ref[3] * 0.001)                                       # Internal heat gain
         )
 
         Q_hgain_sfh.append(round(q_gain_sfh))
@@ -283,30 +286,30 @@ TH_o = 30                     # contsant parameter [hours]
 
 time_cons_sfh = round(cm * A_ref[0] / (coeff_tr_res_sfh +coeff_ve_res_sfh))     # Building time constant
 aH_sfh = round(aH_o + time_cons_sfh / TH_o,2)
-Yh_sfh = round(sum(Q_hgain_sfh) / sum(Q_hloss_sfh),3)    # Heat balance ratio for the heating mode unscaled
+Yh_sfh = round(sum(Q_hgain_sfh) / sum(Q_hloss_sfh),3)                           # Heat balance ratio for the heating mode unscaled
 n_ff_sfh = round((1 - (Yh_sfh ** (aH_sfh))) / (1 - (Yh_sfh ** (aH_sfh + 1))),2)
 
-time_cons_th = round(cm * A_ref[1] / (coeff_tr_res_th + coeff_ve_res_th))     # Building time constant
+time_cons_th = round(cm * A_ref[1] / (coeff_tr_res_th + coeff_ve_res_th))      # Building time constant
 aH_th = round(aH_o + time_cons_th / TH_o ,2)
-Yh_th = round(sum(Q_hgain_th) / sum(Q_hloss_th),3)    # Heat balance ratio for the heating mode unscaled
+Yh_th = round(sum(Q_hgain_th) / sum(Q_hloss_th),3)                             # Heat balance ratio for the heating mode unscaled
 n_ff_th = round((1 - (Yh_th ** (aH_th))) / (1 - (Yh_th ** (aH_th + 1))),2)
 
-time_cons_mfh = round(cm * A_ref[2] / (coeff_tr_res_mfh + coeff_ve_res_mfh))     # Building time constant
+time_cons_mfh = round(cm * A_ref[2] / (coeff_tr_res_mfh + coeff_ve_res_mfh))   # Building time constant
 aH_mfh = round(aH_o + time_cons_mfh / TH_o,3)
-Yh_mfh = round(sum(Q_hgain_mfh) / sum(Q_hloss_mfh),3)   # Heat balance ratio for the heating mode unscaled
+Yh_mfh = round(sum(Q_hgain_mfh) / sum(Q_hloss_mfh),3)                           # Heat balance ratio for the heating mode unscaled
 n_ff_mfh = round((1 - (Yh_mfh ** (aH_mfh))) / (1 - (Yh_mfh ** (aH_mfh + 1))),2)
 
-time_cons_ab = round(cm * A_ref[3] / (coeff_tr_res_ab + coeff_ve_res_ab))     # Building time constant
+time_cons_ab = round(cm * A_ref[3] / (coeff_tr_res_ab + coeff_ve_res_ab))       # Building time constant
 aH_ab = round(aH_o + time_cons_ab / TH_o ,2)
-Yh_ab = round(sum(Q_hgain_ab) / sum(Q_hloss_ab),3)    # Heat balance ratio for the heating mode unscaled
+Yh_ab = round(sum(Q_hgain_ab) / sum(Q_hloss_ab),3)                              # Heat balance ratio for the heating mode unscaled
 n_ff_ab = round((1 - (Yh_ab ** (aH_ab))) / (1 - (Yh_ab ** (aH_ab + 1))),2)
 
 
-# TODO 10 - Energy Demand for heating with time constant
-T_daily_avg = weather.resample('D').mean()
+# TODO 10 - Energy Demand for space heating
+T_daily_avg = weather.resample('D').mean()           # converting hourly data to daily data
 hourly_temp = pd.DataFrame(np.repeat(T_daily_avg['T2m'], 24), columns=['T2m'])
 
-Qd_ht_sfh = []               # demand without time constant unscaled
+Qd_ht_sfh = []              
 Qd_ht_th = []
 Qd_ht_mfh = []
 Qd_ht_ab = []
@@ -317,7 +320,7 @@ for i in range(0, len(weather)):
         Qd_ht_mfh.append(0)
         Qd_ht_ab.append(0)
     elif weather["T2m"][i] <= base_temp:
-       Qd_ht_sfh.append((Q_hloss_sfh[i] - n_ff_sfh * Q_hgain_sfh[i]))  # Demand for heating with time constant
+       Qd_ht_sfh.append((Q_hloss_sfh[i] - n_ff_sfh * Q_hgain_sfh[i])) 
        Qd_ht_th.append((Q_hloss_th[i] - n_ff_th * Q_hgain_th[i]))
        Qd_ht_mfh.append((Q_hloss_mfh[i] - n_ff_mfh * Q_hgain_mfh[i]))
        Qd_ht_ab.append((Q_hloss_ab[i] - n_ff_ab * Q_hgain_ab[i]))
@@ -327,16 +330,17 @@ for i in range(0, len(weather)):
         Qd_ht_mfh.append(0)
         Qd_ht_ab.append(0)
 
-Q_demand_sfh = Qd_ht_sfh
-Q_demand_th = Qd_ht_th
-Q_demand_mfh = Qd_ht_mfh
-Q_demand_ab = Qd_ht_ab
+Q_demand_sfh = Qd_ht_sfh           # Demand for sfh
+Q_demand_th = Qd_ht_th             # Demand for th
+Q_demand_mfh = Qd_ht_mfh           # Demand for mfh
+Q_demand_ab = Qd_ht_ab             # Demand for ab
 #print(len(Q_demand_sfh))
-# TODO Ploting Condition tc
-demand_sfh = []
-demand_th = []
-demand_mfh = []
-demand_ab = []
+
+# TODO ploting condition
+demand_sfh = []                     
+demand_th = []                                            
+demand_mfh = []                     
+demand_ab = []                       
 for i in range(0, len(weather)):
     if Qd_ht_sfh[i] != 0:
         demand_sfh.append(Qd_ht_sfh[i])
@@ -379,13 +383,14 @@ heatflow = pd.DataFrame({"Heat transmission": ["Heat loss", "Heat gain", "Heat d
 heatflow.to_csv(("output/heatflow before 1919.csv"), index=False)
 
 """"
-flow_sqm = pd.DataFrame({"Power_KWh_sqm_year": [heatflow.iloc[-1][1], heatflow.iloc[-1][2], heatflow.iloc[-1][3],  heatflow.iloc[-1][4]],
+# Demand per square meter
+flow_sqm = pd.DataFrame({"Power_kWh_sqm_year": [heatflow.iloc[-1][1], heatflow.iloc[-1][2], heatflow.iloc[-1][3],  heatflow.iloc[-1][4]],
                        "Building Type":  ["SFH", "TH", "MFH", "AB"]}, index=None)
 
 print(flow_sqm)
-cols = ['darkgreen' if (x == 271) else 'darkred' for x in flow_sqm.Power_KWh_sqm_year]
+cols = ['darkgreen' if (x == 271) else 'darkred' for x in flow_sqm.Power_kWh_sqm_year]
 #plt.rcParams["figure.figsize"] = (8,6)
-a_x = sns.barplot(x = 'Building Type',y = 'Power_KWh_sqm_year',
+a_x = sns.barplot(x = 'Building Type',y = 'Power_kWh_sqm_year',
                   width=0.25,data = flow_sqm, palette=cols)
 for i in a_x.containers:
     a_x.bar_label(i,)
@@ -398,35 +403,16 @@ plt.tight_layout()
 plt.savefig(f'output/flow_sqm before 1919')
 plt.show()
 
-
-Building_Type = flow_sqm["Power_kWh_sqm_year"]
-values = flow_sqm["Building Type"]
-
-fig = plt.figure(figsize = (10, 5))
-
-# creating the bar plot
-plt.bar(values, Building_Type, color =cols, width=0.4)
-
-plt.xlabel("Building Types", weight='bold')
-plt.ylabel("Power_KWh_sqm_year", weight='bold')
-plt.title("Annual heat Flow Related To Reference Area", weight='bold')
-plt.ticklabel_format()
-plt.tight_layout()
-#plt.savefig(f'output/flow_sqm before 1919')
-plt.show()
-
 fig, ax = plt.subplots()
-labels=['AB']#, 'TH', 'MFH', 'AB']
-ax.stackplot(heating_demand19.index, heating_demand19['ab'],
+labels=['MFH']#, 'TH', 'MFH', 'AB']
+ax.stackplot(heating_demand19.index, heating_demand19['mfh'],
              colors=['green'], labels=labels)
-
-
 plt.ylim(0, None)
 plt.xlim(0, len(weather))
 plt.xlabel("Time period (h)", fontsize = 14)
 plt.title(f'Space heating demand profile',fontsize = 14)
 plt.ylabel('Power (kW)', fontsize = 14)
-plt.yticks([0, 10, 20, 30, 40, 50],fontsize=14)
+#plt.yticks([0, 10, 20, 30, 40, 50],fontsize=14)
 plt.xticks([0, 744, 1416, 2160, 2880, 3624, 4344, 5088, 5832, 6552, 7296, 8016],
       ['Jan', 'Feb', 'Mar', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'],fontsize=14)
 plt.ticklabel_format()
@@ -476,7 +462,7 @@ plt.xlim(0, len(weather))
 p.set_title(f"Load duration curve for MFH", fontsize=18)
 p.set_xlabel("Time (hours)", fontsize =18)
 p.set_ylabel("Power (kW)", fontsize=18)
-plt.yticks([0, 5, 10, 15, 20, 25],fontsize=18)
+#plt.yticks([0, 5, 10, 15, 20, 25],fontsize=18)
 plt.xticks([0, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000],fontsize=18)
  #     ['Jan', 'Feb', 'Mar', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'])
 plt.ticklabel_format()
