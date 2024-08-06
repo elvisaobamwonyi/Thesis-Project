@@ -36,30 +36,32 @@ res15 = (building.iloc[9][2] * heating_demand15["sfh"].sum()) / (A_ref[9] * buil
 res16 = (building.iloc[10][2] * heating_demand16["sfh"].sum()) / (A_ref[10] * building.iloc[10][2])  # demand 4 sfh from 2016
 #print(building.iloc[5][2])
 
-res_sfh = pd.DataFrame({ "construction_period": ["before 1919", "1919-1948", "1949-1957", "1958-1968", "1969-1978",
-                                                 "1979-1983", "1984-1994", "1995-2001", "2002-2009", "2010-2015", "from 2016"],
-                        "res19":[round(res19,2), round(res48,2), round(res57,2),
-                                 round(res68,2), round(res78,2), round(res83,2), round(res94,2),
-                                 round(res01,2), round(res09,2), round(res15,2), round(res16,2)]})
+res_sfh = pd.DataFrame({ "construction_period": ["before 1919", "1919-1948", "1949-1957", 
+                                                 "1958-1968", "1969-1978", "1979-1983", 
+                                                 "1984-1994", "1995-2001", "2002-2009", 
+                                                 "2010-2015", "from 2016"],
+                         "res19":[round(res19,2), round(res48,2), round(res57,2), round(res68,2), 
+                                  round(res78,2), round(res83,2), round(res94,2),
+                                  round(res01,2), round(res09,2), round(res15,2), round(res16,2)]})
 
 spec_heating = pd.DataFrame({#'period': np.arange(11),
 
                             "construction_period": ["before 1919", "1919-1948", "1949-1957", "1958-1968", "1969-1978",
                                                     "1979-1983", "1984-1994", "1995-2001", "2002-2009",
                                                     "2010-2015", "from 2016"],
-                             "Demand_Kwh": [round(res19), round(res48), round(res57),
+                              "Demand_kWh": [round(res19), round(res48), round(res57),
                                             round(res68), round(res78), round(res83), round(res94),
                                             round(res01), round(res09), round(res15), round(res16)]})
 
 
 cols = ["green"]
 plt.rcParams["figure.figsize"] = (8,6)
-a_x = sns.barplot(x='construction_period',y = 'Demand_Kwh',
+a_x = sns.barplot(x='construction_period',y = 'Demand_kW',
                   width=0.25,data=spec_heating, palette=cols)
 for i in a_x.containers:
     a_x.bar_label(i,)
 plt.xlabel("Construction Year Period", fontsize=12)
-plt.ylabel("Enery demand for space heating [KWh/m^2]", fontsize=12)
+plt.ylabel("Enery demand for space heating [kWh/m^2]", fontsize=12)
 plt.yticks([0, 50, 100, 150, 200, 250],fontsize=12)
 plt.title("Space heating demand for SFH according to construction year period", fontsize=12)
 plt.xticks(rotation=45)
@@ -89,9 +91,10 @@ res_sfh = pd.DataFrame({"res19":res19, "res48":res48, "res57":res57, "res68":res
 
 SFH_sum = []
 for i in range(0, len(res_sfh)):
-    sfh_sum = ((res_sfh["res19"][i] + res_sfh["res48"][i] + res_sfh["res57"][i] + res_sfh["res68"][i] + res_sfh["res78"][i]
-               + res_sfh["res83"][i] + res_sfh["res94"][i] + res_sfh["res01"][i] + res_sfh["res09"][i] + res_sfh["res15"][i]
-               + res_sfh["res16"][i]))
+    sfh_sum = ((res_sfh["res19"][i] + res_sfh["res48"][i] + res_sfh["res57"][i] + 
+                res_sfh["res68"][i] + res_sfh["res78"][i] + res_sfh["res83"][i] +
+                res_sfh["res94"][i] + res_sfh["res01"][i] + res_sfh["res09"][i] + 
+                res_sfh["res15"][i] + res_sfh["res16"][i]))
     SFH_sum.append(round(sfh_sum))
 
 #res_sfh.to_csv(("output/res_sfh.csv"), index=False)
@@ -190,9 +193,10 @@ overall_aggre = pd.DataFrame({'period': np.arange(len(SFH_sum)),
    #                                           round((sum(SFH_sum) + sum(TH_sum) + sum(MFH_sum) + sum(AB_sum))) * 0.000001]}, index=None)
 
 overall_sum_aggre = pd.DataFrame({"Total Heat Energy": ["SFH", "TH", "MFH", "AB", "Aggregated Demand For Space Heating"],
-                            "Value[kWh_per_year]": [round(sum(SFH_sum)), round(sum(TH_sum)),
-                                              round(sum(MFH_sum)),round(sum(AB_sum)),
-                                              round((sum(SFH_sum) + sum(TH_sum) + sum(MFH_sum) + sum(AB_sum)))]}, index=None)
+                                  "Value[kWh_per_year]": [round(sum(SFH_sum)), round(sum(TH_sum)),
+                                                          round(sum(MFH_sum)),round(sum(AB_sum)),
+                                                          round((sum(SFH_sum) + sum(TH_sum) + sum(MFH_sum) + sum(AB_sum)))]}, index=None)
+
 overall_sum_aggre.to_csv(("output/overall aggregate.csv"), index=False)
 overall_aggre.to_csv(("output/overall.csv"), index=False)   # hourly
 print(overall_sum_aggre)
@@ -227,8 +231,7 @@ flow_sqm = pd.DataFrame({"Power_KWh_per_sqm_year": [round((overall_sum_aggre.ilo
                                                     round((overall_sum_aggre.iloc[4][1])/(sum(sfh_aggr_area)+
                                                                                           sum(th_aggr_area)+
                                                                                           sum(mfh_aggr_area)+sum(ab_aggr_area)))
-],
-
+                                                     ],
                          "Building Type":  ["SFH", "TH", "MFH", "AB", "Overall Demand"]}, index=None)
 
 #round((overall_sum_aggre.iloc[0][1] / sum(sfh_aggr_area)) +
@@ -242,7 +245,9 @@ print(flow_sqm)
 cols = ['darkgreen' if (x > 180) else 'darkred' for x in flow_sqm.Power_KWh_per_sqm_year]
 plt.rcParams["figure.figsize"] = (8,6)
 #fontweight = 'bold'
-a_x = sns.barplot(x = 'Building Type',y = 'Power_KWh_per_sqm_year',data = flow_sqm,
+a_x = sns.barplot(x = 'Building Type',
+                  y = 'Power_KWh_per_sqm_year',
+                  data = flow_sqm,
                   palette=cols, width=0.25)
 
 for i in a_x.containers:
